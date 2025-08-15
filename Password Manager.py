@@ -9,7 +9,7 @@ import threading
 
 key = Fernet.generate_key()
 fernet_key = Fernet(key)
-
+# Creates a database to store passwords
 connection = sqlite3.connect('passwords.db')
 c = connection.cursor()
 c.execute('''
@@ -22,7 +22,7 @@ c.execute('''
 ''')
 
 connection.commit()
-
+# This functon is used to check the strength of the password based on the length of the password
 def check_passwordstrength(password):
     password_length = len(password)
     digit_in_password = re.search(r'\d', password)
@@ -38,7 +38,7 @@ def check_passwordstrength(password):
         return "Medium, could be better", "orange"
     else:
         return "Strong, Great", "green"
-
+# This function is used to prompt the user to get valid credentials
 def add_password():
     website = website_entry.get()
     username = username_entry.get()
@@ -59,7 +59,7 @@ def add_password():
     password_entry.delete(0, tk.END)
 
     update_table()
-
+# This function is used to delete the credential
 def delete_password():
     selected_password = tree.focus()
     if not selected_password:
@@ -70,7 +70,7 @@ def delete_password():
     connection.commit()
 
     update_table()
-
+# This function is used to copy the password from the selected credential to the clipboard for 10sec
 def copy_password():
     selected_password = tree.focus()
     if not selected_password:
@@ -88,18 +88,18 @@ def copy_password():
         pyperclip.copy("")
 
     threading.Thread(target=clear_clipboard, daemon=True).start()
-
+# this function updates the credentials
 def update_table():
     for row in tree.get_children():
         tree.delete(row)
     c.execute('SELECT * FROM passwords')
     for row in c.fetchall():
         tree.insert("", tk.END, values=(row[0], row[1], row[2]))
-
+# This function shows the strength of the password while the user enters the password
 def on_password_entry(event):
     strength, color = check_passwordstrength(password_entry.get())
     label_strength.config(text=f"Strength: {strength}", fg=color)
-
+# UI
 root = tk.Tk()
 root.title("Password Manager")
 root.geometry("700x500")
@@ -122,7 +122,7 @@ password_entry.bind("<KeyRelease>", on_password_entry)
 
 label_strength = tk.Label(frame, text="Strength: ", fg="black")
 label_strength.grid(row=2, column=2, padx=10)
-
+# adds buttons for add the credentials, deleting and copying.
 tk.Button(frame, text="Add", command=add_password).grid(row=3, column=0, pady=10)
 tk.Button(frame, text="Delete", command=delete_password).grid(row=3, column=1, pady=10)
 tk.Button(frame, text="Copy", command=copy_password).grid(row=3, column=2, pady=10)
@@ -134,5 +134,6 @@ for col in columnss:
 tree.pack(fill=tk.BOTH, expand=True)
 
 update_table()
+
 
 root.mainloop()
